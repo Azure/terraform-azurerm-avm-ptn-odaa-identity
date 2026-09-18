@@ -1,0 +1,7 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/azure-verified-modules-tools/main/src/Avm.Authoring/Resources/Schemas/v1/avm-module-metadata.schema.json",
+  "moduleDisplayName": "Azure Identity Role-Based Access Control",
+  "moduleDescription": "Provides the Azure Identity module's Azure role-based access control setup for ADB-S and Exa.",
+  "canonicalType": "odaa-identity/azure-identity/azure-rbac",
+  "telemetryIdPrefix": "46d3xtrf.ptn.4475a6f"
+}

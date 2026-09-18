@@ -1,0 +1,11 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/azure-verified-modules-tools/main/src/Avm.Authoring/Resources/Schemas/v1/avm-module-metadata.schema.json",
+  "moduleDisplayName": "Oracle Identity",
+  "moduleDescription": "AVM Pattern Module for Oracle Identity",
+  "canonicalType": "odaa-identity",
+  "owners": [
+    "terrymandin",
+    "kohei3110"
+  ],
+  "telemetryIdPrefix": "46d3xtrf.ptn.e02c50c"
+}
