@@ -1,13 +1,15 @@
 terraform {
   required_providers {
-    azuread = {
-      source = "hashicorp/azuread"
+    azapi = {
+      source  = "Azure/azapi"
+      version = "~> 2.12"
     }
     azurerm = {
       source = "hashicorp/azurerm"
     }
   }
 }
+
 locals {
 
   odbaa_adbs_db_administrator_group    = "${var.group_prefix}odbaa-adbs-db-administrators-group"
@@ -36,9 +38,13 @@ data "azurerm_subscription" "primary" {
 }
 
 resource "azurerm_role_definition" "odbaa-adbs-db-administrators-role" {
-  count       = var.adbs_rbac ? 1 : 0
-  name        = "Oracle.Database Autonomous Database Administrator"
-  scope       = data.azurerm_subscription.primary.id
+  count = var.adbs_rbac ? 1 : 0
+
+  name  = "Oracle.Database Autonomous Database Administrator"
+  scope = data.azurerm_subscription.primary.id
+  assignable_scopes = [
+    data.azurerm_subscription.primary.id,
+  ]
   description = "Grants full access to manage all ADB-S resources"
 
   permissions {
@@ -62,14 +68,13 @@ resource "azurerm_role_definition" "odbaa-adbs-db-administrators-role" {
     not_actions      = []
     not_data_actions = []
   }
-
-  assignable_scopes = [
-    data.azurerm_subscription.primary.id,
-  ]
 }
 
 module "azure_rbac_setup" {
-  source                              = "./azure-rbac"
+  source = "./azure-rbac"
+
+  enable_telemetry                    = var.enable_telemetry
+  location                            = var.location
   odbaa_built_in_role_assigned_groups = toset(concat(local.odbaa_adbs_groups, local.odbaa_exa_groups))
   odbaa_other_groups                  = local.odbaa_other_groups
   role_mapping                        = local.group_to_role_mapping

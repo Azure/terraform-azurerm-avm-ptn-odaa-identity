@@ -1,19 +1,22 @@
 terraform {
   required_providers {
+    azapi = {
+      source  = "Azure/azapi"
+      version = "~> 2.12"
+    }
     azuread = {
       source = "hashicorp/azuread"
     }
-    azurerm = {
-      source = "hashicorp/azurerm"
-    }
   }
 }
+
 locals {
   identifier_uri          = "${var.oci_domain_uri}/fed"
   redirect_uris           = ["${var.oci_domain_uri}/fed/v1/sp/sso"]
   login_url               = "${var.oci_domain_uri}/ui/v1/myconsole"
   application_template_id = "8ac83ca1-af23-41f3-a342-0118ab26754c"
 }
+
 data "azuread_client_config" "current" {}
 
 resource "azuread_application" "application" {
@@ -49,11 +52,6 @@ resource "azuread_service_principal" "application" {
   # use_existing                  = true
   preferred_single_sign_on_mode = "saml"
   login_url                     = local.login_url
-  # feature_tags {
-  #   enterprise            = true
-  #   gallery               = false
-  #   custom_single_sign_on = true
-  # }
 }
 
 resource "azuread_service_principal_token_signing_certificate" "odbaa_sp_token_signing_certificate" {
@@ -65,7 +63,8 @@ resource "azuread_service_principal_token_signing_certificate" "odbaa_sp_token_s
 resource "azuread_application_identifier_uri" "identifier_uri" {
   application_id = azuread_application.application.id
   identifier_uri = local.identifier_uri
-  depends_on     = [azuread_service_principal_token_signing_certificate.odbaa_sp_token_signing_certificate]
+
+  depends_on = [azuread_service_principal_token_signing_certificate.odbaa_sp_token_signing_certificate]
 }
 
 data "http" "idp_metadata" {
@@ -73,6 +72,7 @@ data "http" "idp_metadata" {
   request_headers = {
     Accept = "application/xml"
   }
+
   depends_on = [
     azuread_service_principal.application,
     azuread_application.application
@@ -81,6 +81,7 @@ data "http" "idp_metadata" {
 
 resource "azuread_claims_mapping_policy" "odbaa_mapping_policy" {
   count = var.claim ? 1 : 0
+
   definition = [
     jsonencode(
       {
@@ -125,18 +126,18 @@ resource "azuread_claims_mapping_policy" "odbaa_mapping_policy" {
 resource "azuread_service_principal_claims_mapping_policy_assignment" "app" {
   claims_mapping_policy_id = one(azuread_claims_mapping_policy.odbaa_mapping_policy).id
   service_principal_id     = azuread_service_principal.application.id
-
 }
-
 
 data "azuread_user" "user" {
   count = var.user_email == "" ? 0 : 1
+
   # only one of `employee_id,mail,mail_nickname,object_id,user_principal_name` can be specified
   mail = var.user_email
 }
 
 resource "azuread_group" "app_group" {
-  count            = var.application_group_name != "" ? 1 : 0
+  count = var.application_group_name != "" ? 1 : 0
+
   display_name     = var.application_group_name
   security_enabled = true
   members = length(data.azuread_user.user) > 0 ? [
@@ -146,9 +147,9 @@ resource "azuread_group" "app_group" {
 }
 
 resource "azuread_app_role_assignment" "app_role_assignment" {
-  count               = var.application_group_name == "" ? 0 : 1
+  count = var.application_group_name == "" ? 0 : 1
+
   app_role_id         = "00000000-0000-0000-0000-000000000000"
   principal_object_id = data.azuread_user.user == null ? "" : one(azuread_group.app_group).object_id
   resource_object_id  = azuread_service_principal.application.object_id
 }
-

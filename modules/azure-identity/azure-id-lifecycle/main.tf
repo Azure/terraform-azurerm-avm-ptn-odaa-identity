@@ -1,6 +1,9 @@
-
 terraform {
   required_providers {
+    azapi = {
+      source  = "Azure/azapi"
+      version = "~> 2.12"
+    }
     azuread = {
       source = "hashicorp/azuread"
       # version = "~> 2.48.0" # -- for module local run  -- uncomment
@@ -44,20 +47,18 @@ locals {
   sso_provision_job_id = split("/", azuread_synchronization_job.provision_job.id)[2]
 }
 
-
 # # # # Step 5 mapping changes # # # # 
 resource "terraform_data" "azad_sync_job_schema_modify" {
-  depends_on = [
-    azuread_synchronization_job.provision_job
-  ]
-
   provisioner "local-exec" {
     working_dir = path.module
     command     = "pip3 install -r scripts/requirements.txt"
   }
-
   provisioner "local-exec" {
     working_dir = path.module
     command     = "python3 scripts/azad_sync_job_schema_modify.py -sp '${local.sso_service_principal_id}' -pj '${local.sso_provision_job_id}' "
   }
-} 
+
+  depends_on = [
+    azuread_synchronization_job.provision_job
+  ]
+}
