@@ -28,7 +28,7 @@ provider "azurerm" {
 # This allows us to randomize the region for the resource group.
 module "regions" {
   source  = "Azure/regions/azurerm"
-  version = "~> 0.3"
+  version = "0.8.2"
 }
 
 # This allows us to randomize the region for the resource group.
@@ -124,7 +124,7 @@ Version: 0.3.0
 
 Source: Azure/regions/azurerm
 
-Version: ~> 0.3
+Version: 0.8.2
 
 ### <a name="module_test"></a> [test](#module\_test)
 
