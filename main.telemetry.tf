@@ -3,24 +3,6 @@ data "azapi_client_config" "telemetry" {
 }
 
 locals {
-  main_location = var.location
-}
-
-removed {
-  from = modtm_telemetry.telemetry
-  lifecycle {
-    destroy = false
-  }
-}
-
-removed {
-  from = random_uuid.telemetry
-  lifecycle {
-    destroy = false
-  }
-}
-
-locals {
   avm_metadata                = jsondecode(file("${path.module}/metadata.json"))
   avm_telemetry_manifest_path = "${path.root}/.terraform/modules/modules.json"
   avm_telemetry_modules       = fileexists(local.avm_telemetry_manifest_path) ? jsondecode(file(local.avm_telemetry_manifest_path)).Modules : []
@@ -41,6 +23,10 @@ locals {
 
 locals {
   avm_telemetry_version_token = replace(coalesce(local.avm_module_version, "0.0.0"), ".", "-")
+}
+
+locals {
+  main_location = var.location
 }
 
 resource "terraform_data" "telemetry" {
